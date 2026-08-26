@@ -287,6 +287,23 @@ app.post("/api/bookings/:id/contacted", requireAdmin, (req, res) => {
   }
 });
 
+// ---- admin: delete a booking request ----
+app.post("/api/bookings/:id/delete", requireAdmin, (req, res) => {
+  try {
+    const bookings = readBookings();
+    const idx = bookings.items.findIndex((x) => x.id === req.params.id);
+    if (idx === -1) {
+      res.status(404).json({ error: "Booking not found." });
+      return;
+    }
+    bookings.items.splice(idx, 1);
+    writeBookings(bookings);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: "Could not delete booking." });
+  }
+});
+
 // ---- admin: save full content JSON (prices, promo, gallery captions) ----
 app.post("/api/content", requireAdmin, (req, res) => {
   const body = req.body;

@@ -541,7 +541,7 @@
     } else {
       var wrap = el("div", { class: "table-scroll" });
       var table = el("table", { class: "bookings-table" });
-      var headLabels = ["ส่งเมื่อ", "ชื่อ", "เบอร์โทร", "วันที่นัด", "เวลา", "บริการ", "หมายเหตุ", "ติดต่อแล้ว"];
+      var headLabels = ["ส่งเมื่อ", "ชื่อ", "เบอร์โทร", "วันที่นัด", "เวลา", "บริการ", "หมายเหตุ", "ติดต่อแล้ว", ""];
       var thead = el("thead", {}, [el("tr", {}, headLabels.map(function (t) {
         return el("th", {}, [document.createTextNode(t)]);
       }))]);
@@ -587,6 +587,25 @@
         toggleWrap.appendChild(cb);
         toggleWrap.appendChild(document.createTextNode("ติดต่อแล้ว"));
         row.appendChild(el("td", {}, [toggleWrap]));
+
+        var delBtn = el("button", { class: "btn btn-danger btn-sm", type: "button" }, [document.createTextNode("ลบ")]);
+        delBtn.addEventListener("click", function () {
+          if (!confirm("ลบคำขอจองคิวนี้? การลบไม่สามารถย้อนกลับได้")) return;
+          delBtn.disabled = true;
+          fetch("/api/bookings/" + b.id + "/delete", { method: "POST", credentials: "same-origin" })
+            .then(function (r) { if (!r.ok) throw new Error("failed"); return r.json(); })
+            .then(function () {
+              var i = items.indexOf(b);
+              if (i > -1) items.splice(i, 1);
+              setStatus("ลบคำขอจองคิวแล้ว", "ok");
+              render();
+            })
+            .catch(function () {
+              delBtn.disabled = false;
+              setStatus("ลบไม่สำเร็จ ลองใหม่อีกครั้ง", "err");
+            });
+        });
+        row.appendChild(el("td", {}, [delBtn]));
 
         tbody.appendChild(row);
       });
