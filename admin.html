@@ -252,6 +252,19 @@
   }
   table.stats-table th:first-child, table.stats-table td:first-child { text-align: left; }
   table.stats-table th { color: var(--ink-soft); font-size: 12px; font-weight: 600; }
+
+  /* bookings */
+  .table-scroll { overflow-x: auto; }
+  table.bookings-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+  table.bookings-table th, table.bookings-table td {
+    text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top;
+  }
+  table.bookings-table th { color: var(--ink-soft); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+  table.bookings-table td.notes-cell { max-width: 220px; color: var(--ink-soft); font-size: 12.5px; }
+  table.bookings-table tr.contacted td { opacity: 0.5; }
+  .contacted-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
+  .empty-note { color: var(--ink-faint); font-size: 13.5px; padding: 8px 0; }
+  .email-hint { font-size: 12px; color: var(--ink-faint); margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -273,6 +286,7 @@
 (function () {
   var content = null;
   var stats = null;
+  var bookings = null;
   var THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
   // stats are bucketed in Asia/Bangkok time server-side; mirror that here
@@ -462,6 +476,75 @@
     return sec;
   }
 
+  function renderBookingsSection(bookingsData, currentContent) {
+    var sec = el("section", { class: "panel" });
+    sec.appendChild(el("h2", {}, [document.createTextNode("คำขอจองคิว")]));
+    sec.appendChild(el("p", { class: "desc" }, [document.createTextNode("รายการคำขอจองคิวจากลูกค้า และอีเมลที่จะรับการแจ้งเตือนเมื่อมีคำขอใหม่")]));
+
+    var notifyEmailInput = textInput(currentContent.settings ? currentContent.settings.notifyEmail : "");
+    notifyEmailInput.type = "email";
+    notifyEmailInput.placeholder = "shop@example.com";
+    sec.appendChild(field("อีเมลรับแจ้งเตือน (บันทึกพร้อมปุ่ม \"บันทึกการเปลี่ยนแปลง\" ด้านล่าง)", notifyEmailInput));
+
+    var items = (bookingsData && bookingsData.items) || [];
+    if (!items.length) {
+      sec.appendChild(el("p", { class: "empty-note" }, [document.createTextNode("ยังไม่มีคำขอจองคิว")]));
+    } else {
+      var wrap = el("div", { class: "table-scroll" });
+      var table = el("table", { class: "bookings-table" });
+      var headLabels = ["ส่งเมื่อ", "ชื่อ", "เบอร์โทร", "วันที่นัด", "เวลา", "บริการ", "หมายเหตุ", "ติดต่อแล้ว"];
+      var thead = el("thead", {}, [el("tr", {}, headLabels.map(function (t) {
+        return el("th", {}, [document.createTextNode(t)]);
+      }))]);
+      var tbody = el("tbody");
+      items.forEach(function (b) {
+        var row = el("tr", { class: b.contacted ? "contacted" : "" });
+        var created = new Date(b.createdAt);
+        var createdStr = isNaN(created.getTime())
+          ? "-"
+          : created.toLocaleString("th-TH", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+        row.appendChild(el("td", {}, [document.createTextNode(createdStr)]));
+        row.appendChild(el("td", {}, [document.createTextNode(b.name || "")]));
+        row.appendChild(el("td", {}, [document.createTextNode(b.phone || "")]));
+        row.appendChild(el("td", {}, [document.createTextNode(b.date || "")]));
+        row.appendChild(el("td", {}, [document.createTextNode(b.time || "")]));
+        row.appendChild(el("td", {}, [document.createTextNode(b.service || "-")]));
+        row.appendChild(el("td", { class: "notes-cell" }, [document.createTextNode(b.notes || "-")]));
+
+        var toggleWrap = el("label", { class: "contacted-toggle" });
+        var cb = el("input", { type: "checkbox" });
+        cb.checked = !!b.contacted;
+        cb.addEventListener("change", function () {
+          cb.disabled = true;
+          fetch("/api/bookings/" + b.id + "/contacted", { method: "POST", credentials: "same-origin" })
+            .then(function (r) { if (!r.ok) throw new Error("failed"); return r.json(); })
+            .then(function (data) {
+              b.contacted = data.contacted;
+              row.className = b.contacted ? "contacted" : "";
+              setStatus(b.contacted ? "ทำเครื่องหมายว่าติดต่อแล้ว" : "ยกเลิกเครื่องหมายติดต่อแล้ว", "ok");
+            })
+            .catch(function () {
+              cb.checked = !cb.checked;
+              setStatus("อัปเดตไม่สำเร็จ", "err");
+            })
+            .finally(function () { cb.disabled = false; });
+        });
+        toggleWrap.appendChild(cb);
+        toggleWrap.appendChild(document.createTextNode("ติดต่อแล้ว"));
+        row.appendChild(el("td", {}, [toggleWrap]));
+
+        tbody.appendChild(row);
+      });
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      sec.appendChild(wrap);
+    }
+
+    return { section: sec, notifyEmailInput: notifyEmailInput };
+  }
+
   function render() {
     var app = document.getElementById("app");
     app.innerHTML = "";
@@ -470,6 +553,11 @@
     if (stats) {
       app.appendChild(renderStatsSection(stats));
     }
+
+    // ---- bookings ----
+    var bookingsResult = renderBookingsSection(bookings, content);
+    app.appendChild(bookingsResult.section);
+    var notifyEmailInput = bookingsResult.notifyEmailInput;
 
     // ---- promo ----
     var promoSec = el("section", { class: "panel" });
@@ -545,6 +633,8 @@
 
     // collect functions for save
     window.__collect = function () {
+      if (!content.settings) content.settings = {};
+      content.settings.notifyEmail = notifyEmailInput.value.trim();
       content.promo.enabled = promoToggle.checked;
       content.promo.th = promoTh.value;
       content.promo.en = promoEn.value;
@@ -723,6 +813,14 @@
       if (content) render();
     })
     .catch(function () { /* non-fatal: stats panel just won't show */ });
+
+  fetch("/api/bookings", { credentials: "same-origin" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      bookings = data;
+      if (content) render();
+    })
+    .catch(function () { /* non-fatal: bookings list just won't show */ });
 
   fetch("/api/content", { credentials: "same-origin" })
     .then(function (r) { return r.json(); })

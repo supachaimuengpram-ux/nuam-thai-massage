@@ -3,6 +3,12 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const multer = require("multer");
+let nodemailer;
+try {
+  nodemailer = require("nodemailer");
+} catch (err) {
+  nodemailer = null;
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,9 +19,20 @@ const SEED_GALLERY_DIR = path.join(__dirname, "images", "gallery");
 const CONTENT_PATH = path.join(DATA_DIR, "content.json");
 const GALLERY_DIR = path.join(DATA_DIR, "images", "gallery");
 const STATS_PATH = path.join(DATA_DIR, "stats.json");
+const BOOKINGS_PATH = path.join(DATA_DIR, "bookings.json");
 
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+
+const GMAIL_USER = process.env.GMAIL_USER || "";
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "";
+let mailTransporter = null;
+if (nodemailer && GMAIL_USER && GMAIL_APP_PASSWORD) {
+  mailTransporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+  });
+}
 
 // ---- first-boot seed: copy default content/images into the persistent volume ----
 function ensureSeeded() {
@@ -38,11 +55,20 @@ function ensureSeeded() {
   if (!fs.existsSync(STATS_PATH)) {
     fs.writeFileSync(STATS_PATH, JSON.stringify({ days: {} }, null, 2), "utf-8");
   }
+
+  if (!fs.existsSync(BOOKINGS_PATH)) {
+    fs.writeFileSync(BOOKINGS_PATH, JSON.stringify({ items: [] }, null, 2), "utf-8");
+  }
 }
 ensureSeeded();
 
 function readContent() {
-  return JSON.parse(fs.readFileSync(CONTENT_PATH, "utf-8"));
+  const parsed = JSON.parse(fs.readFileSync(CONTENT_PATH, "utf-8"));
+  // migrate older content.json files that predate the "settings" section
+  if (!parsed.settings || typeof parsed.settings !== "object") {
+    parsed.settings = { notifyEmail: "" };
+  }
+  return parsed;
 }
 function writeContent(obj) {
   fs.writeFileSync(CONTENT_PATH, JSON.stringify(obj, null, 2), "utf-8");
@@ -59,6 +85,59 @@ function readStats() {
 }
 function writeStats(obj) {
   fs.writeFileSync(STATS_PATH, JSON.stringify(obj, null, 2), "utf-8");
+}
+
+function readBookings() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(BOOKINGS_PATH, "utf-8"));
+    if (!Array.isArray(parsed.items)) parsed.items = [];
+    return parsed;
+  } catch (err) {
+    return { items: [] };
+  }
+}
+function writeBookings(obj) {
+  fs.writeFileSync(BOOKINGS_PATH, JSON.stringify(obj, null, 2), "utf-8");
+}
+
+async function sendBookingEmail(booking, notifyEmail) {
+  if (!mailTransporter) return { sent: false, reason: "not_configured" };
+  if (!notifyEmail) return { sent: false, reason: "no_recipient" };
+
+  const lang = booking.lang === "en" ? "en" : "th";
+  const subject = lang === "en"
+    ? `New booking request — ${booking.name}`
+    : `คำขอจองคิวใหม่ — ${booking.name}`;
+  const lines = lang === "en"
+    ? [
+        `Name: ${booking.name}`,
+        `Phone: ${booking.phone}`,
+        `Date: ${booking.date}`,
+        `Time: ${booking.time}`,
+        `Service: ${booking.service || "(not specified)"}`,
+        `Notes: ${booking.notes || "-"}`,
+      ]
+    : [
+        `ชื่อ: ${booking.name}`,
+        `เบอร์โทร: ${booking.phone}`,
+        `วันที่: ${booking.date}`,
+        `เวลา: ${booking.time}`,
+        `บริการ: ${booking.service || "(ไม่ระบุ)"}`,
+        `หมายเหตุ: ${booking.notes || "-"}`,
+      ];
+
+  try {
+    await mailTransporter.sendMail({
+      from: `"น่วม Thai Massage" <${GMAIL_USER}>`,
+      to: notifyEmail,
+      subject: subject,
+      text: lines.join("\n"),
+    });
+    return { sent: true };
+  } catch (err) {
+    console.error("Failed to send booking email:", err.message);
+    return { sent: false, reason: "send_error" };
+  }
 }
 
 // dates are bucketed in Asia/Bangkok time (UTC+7) regardless of server timezone,
@@ -159,6 +238,87 @@ app.get("/api/stats", requireAdmin, (req, res) => {
     res.json(readStats());
   } catch (err) {
     res.status(500).json({ error: "Could not read stats." });
+  }
+});
+
+// ---- public: submit a booking request ----
+app.post("/api/booking", async (req, res) => {
+  const b = req.body || {};
+  const name = (b.name || "").toString().trim().slice(0, 200);
+  const phone = (b.phone || "").toString().trim().slice(0, 50);
+  const date = (b.date || "").toString().trim();
+  const time = (b.time || "").toString().trim();
+  const service = (b.service || "").toString().trim().slice(0, 200);
+  const notes = (b.notes || "").toString().trim().slice(0, 1000);
+  const lang = b.lang === "en" ? "en" : "th";
+
+  if (!name || !phone || !date || !time) {
+    res.status(400).json({ error: "Missing required fields." });
+    return;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+    res.status(400).json({ error: "Invalid date or time format." });
+    return;
+  }
+
+  const booking = {
+    id: crypto.randomBytes(8).toString("hex"),
+    name: name,
+    phone: phone,
+    date: date,
+    time: time,
+    service: service,
+    notes: notes,
+    lang: lang,
+    createdAt: new Date().toISOString(),
+    contacted: false,
+  };
+
+  try {
+    const bookings = readBookings();
+    bookings.items.unshift(booking);
+    writeBookings(bookings);
+  } catch (err) {
+    res.status(500).json({ error: "Could not save booking." });
+    return;
+  }
+
+  let emailResult = { sent: false };
+  try {
+    const content = readContent();
+    const notifyEmail = content.settings && content.settings.notifyEmail;
+    emailResult = await sendBookingEmail(booking, notifyEmail);
+  } catch (err) {
+    // non-fatal: booking is already saved even if email lookup/send fails
+  }
+
+  res.json({ ok: true, id: booking.id, emailSent: !!emailResult.sent });
+});
+
+// ---- admin: read booking requests ----
+app.get("/api/bookings", requireAdmin, (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    res.json(readBookings());
+  } catch (err) {
+    res.status(500).json({ error: "Could not read bookings." });
+  }
+});
+
+// ---- admin: toggle a booking's "contacted" flag ----
+app.post("/api/bookings/:id/contacted", requireAdmin, (req, res) => {
+  try {
+    const bookings = readBookings();
+    const item = bookings.items.find((x) => x.id === req.params.id);
+    if (!item) {
+      res.status(404).json({ error: "Booking not found." });
+      return;
+    }
+    item.contacted = !item.contacted;
+    writeBookings(bookings);
+    res.json({ ok: true, contacted: item.contacted });
+  } catch (err) {
+    res.status(500).json({ error: "Could not update booking." });
   }
 });
 

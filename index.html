@@ -470,6 +470,59 @@
     .video-card .cap { font-size: 13px; }
   }
 
+  /* booking */
+  .booking-form {
+    max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    padding: 26px 28px;
+  }
+  .booking-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .booking-field { margin-bottom: 16px; }
+  .booking-field:last-of-type { margin-bottom: 0; }
+  .booking-field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .booking-field input,
+  .booking-field select,
+  .booking-field textarea {
+    width: 100%;
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    padding: 11px 13px;
+    font-family: inherit;
+    font-size: 14.5px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .booking-field input:focus,
+  .booking-field select:focus,
+  .booking-field textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .booking-field textarea { resize: vertical; min-height: 70px; }
+  .booking-submit-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .booking-msg { font-size: 13.5px; font-weight: 600; }
+  .booking-msg.ok { color: var(--sage-ink, #2E7D4F); }
+  .booking-msg.err { color: #C5221F; }
+  @media (max-width: 600px) {
+    .booking-form { padding: 20px 18px; }
+    .booking-row { grid-template-columns: 1fr; gap: 0; }
+  }
+
   /* lightbox */
   .lightbox {
     position: fixed; inset: 0; z-index: 100;
@@ -734,6 +787,7 @@
       <a href="#services" data-i18n="nav.services">บริการ &amp; ราคา</a>
       <a href="#gallery" data-i18n="nav.gallery">ภาพบรรยากาศ</a>
       <a href="#videos" data-i18n="nav.videos">วิดีโอ</a>
+      <a href="#booking" data-i18n="nav.booking">จองคิว</a>
       <a href="#reviews" data-i18n="nav.reviews">รีวิว</a>
       <a href="#hours" data-i18n="nav.hours">เวลาเปิด-ปิด</a>
       <a href="#location" data-i18n="nav.location">แผนที่ &amp; เส้นทาง</a>
@@ -839,6 +893,52 @@
         <figcaption class="lightbox-caption" id="lightboxCaption"></figcaption>
       </figure>
     </div>
+
+    <section class="block" id="booking">
+      <div class="block-head">
+        <p class="eyebrow" data-i18n="booking.eyebrow">จองคิวออนไลน์</p>
+        <h2 data-i18n="booking.h2">จองคิวล่วงหน้า</h2>
+        <p data-i18n="booking.sub">ส่งคำขอจองคิว แล้วทางร้านจะติดต่อกลับเพื่อยืนยันเวลา</p>
+      </div>
+      <form class="booking-form" id="bookingForm" novalidate>
+        <div class="booking-row">
+          <div class="booking-field">
+            <label for="bkName" data-i18n="booking.name">ชื่อ-นามสกุล</label>
+            <input type="text" id="bkName" name="name" required autocomplete="name">
+          </div>
+          <div class="booking-field">
+            <label for="bkPhone" data-i18n="booking.phone">เบอร์โทร</label>
+            <input type="tel" id="bkPhone" name="phone" required autocomplete="tel">
+          </div>
+        </div>
+        <div class="booking-row">
+          <div class="booking-field">
+            <label for="bkDate" data-i18n="booking.date">วันที่ต้องการเข้าใช้บริการ</label>
+            <input type="date" id="bkDate" name="date" required>
+          </div>
+          <div class="booking-field">
+            <label for="bkTime" data-i18n="booking.time">เวลา</label>
+            <input type="time" id="bkTime" name="time" min="10:00" max="22:30" step="1800" required>
+          </div>
+        </div>
+        <div class="booking-field">
+          <label for="bkService" data-i18n="booking.service">บริการที่สนใจ</label>
+          <select id="bkService" name="service">
+            <option value="" data-i18n="booking.selectService">ไม่ระบุ / ให้ทางร้านแนะนำ</option>
+          </select>
+        </div>
+        <div class="booking-field">
+          <label for="bkNotes" data-i18n="booking.notes">หมายเหตุ (ถ้ามี)</label>
+          <textarea id="bkNotes" name="notes" data-i18n-placeholder="booking.notesPlaceholder" placeholder="เช่น น้ำหนักตัว จุดที่ปวดเป็นพิเศษ หรือความต้องการอื่น ๆ"></textarea>
+        </div>
+        <div class="booking-submit-row">
+          <button type="submit" class="btn btn-accent" id="bookingSubmitBtn">
+            <span data-i18n="booking.submit">ส่งคำขอจองคิว</span>
+          </button>
+          <span class="booking-msg" id="bookingMsg"></span>
+        </div>
+      </form>
+    </section>
 
     <section class="block" id="reviews">
       <div class="block-head">
@@ -1059,6 +1159,23 @@
       "videos.cap2note": "เงื่อนไขเป็นไปตามที่ร้านกำหนด",
       "videos.cap3": "บรรยากาศหน้าร้าน",
       "videos.cap4": "ผ่อนคลายไปกับเรา",
+      "nav.booking": "จองคิว",
+      "booking.eyebrow": "จองคิวออนไลน์",
+      "booking.h2": "จองคิวล่วงหน้า",
+      "booking.sub": "ส่งคำขอจองคิว แล้วทางร้านจะติดต่อกลับเพื่อยืนยันเวลา",
+      "booking.name": "ชื่อ-นามสกุล",
+      "booking.phone": "เบอร์โทร",
+      "booking.date": "วันที่ต้องการเข้าใช้บริการ",
+      "booking.time": "เวลา",
+      "booking.service": "บริการที่สนใจ",
+      "booking.selectService": "ไม่ระบุ / ให้ทางร้านแนะนำ",
+      "booking.notes": "หมายเหตุ (ถ้ามี)",
+      "booking.notesPlaceholder": "เช่น น้ำหนักตัว จุดที่ปวดเป็นพิเศษ หรือความต้องการอื่น ๆ",
+      "booking.submit": "ส่งคำขอจองคิว",
+      "booking.submitting": "กำลังส่ง...",
+      "booking.success": "ส่งคำขอจองคิวเรียบร้อยแล้ว ทางร้านจะติดต่อกลับเพื่อยืนยันเร็ว ๆ นี้",
+      "booking.errorRequired": "กรุณากรอกชื่อ เบอร์โทร วันที่ และเวลาให้ครบถ้วน",
+      "booking.errorGeneric": "ส่งคำขอไม่สำเร็จ กรุณาลองใหม่อีกครั้ง หรือโทรจองคิวโดยตรง",
       "reviews.eyebrow": "เสียงจากลูกค้า",
       "reviews.h2": "รีวิวจริงจาก Google Maps",
       "reviews.introPre": "คะแนนเฉลี่ย",
@@ -1134,6 +1251,23 @@
       "videos.cap2note": "Terms and conditions apply",
       "videos.cap3": "Storefront atmosphere",
       "videos.cap4": "Relax and drift away with us",
+      "nav.booking": "Book Now",
+      "booking.eyebrow": "Online Booking",
+      "booking.h2": "Book Ahead",
+      "booking.sub": "Send a booking request and the shop will call you back to confirm the time",
+      "booking.name": "Full Name",
+      "booking.phone": "Phone Number",
+      "booking.date": "Preferred Date",
+      "booking.time": "Time",
+      "booking.service": "Service of Interest",
+      "booking.selectService": "No preference / let the shop recommend",
+      "booking.notes": "Notes (optional)",
+      "booking.notesPlaceholder": "e.g. any areas that need extra attention, or other requests",
+      "booking.submit": "Send Booking Request",
+      "booking.submitting": "Sending...",
+      "booking.success": "Your booking request has been sent. The shop will call you back soon to confirm.",
+      "booking.errorRequired": "Please fill in name, phone, date and time.",
+      "booking.errorGeneric": "Could not send the request. Please try again, or call the shop directly.",
       "reviews.eyebrow": "What Customers Say",
       "reviews.h2": "Real Reviews from Google Maps",
       "reviews.introPre": "Average rating",
@@ -1234,6 +1368,10 @@
     document.querySelectorAll("[data-i18n-html]").forEach(function (el) {
       var key = el.getAttribute("data-i18n-html");
       if (dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n-placeholder");
+      if (dict[key] !== undefined) el.setAttribute("placeholder", dict[key]);
     });
     document.querySelectorAll(".price-durations .min").forEach(function (el) {
       var m = el.textContent.match(/(\d+)/);
@@ -1390,10 +1528,34 @@
     });
   }
 
+  function renderBookingServices() {
+    if (!siteContent) return;
+    var select = document.getElementById("bkService");
+    if (!select) return;
+    var previousValue = select.value;
+    select.innerHTML = "";
+    var dict = I18N[currentLang] || I18N.th;
+    var defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = dict["booking.selectService"] || "";
+    select.appendChild(defaultOpt);
+    (siteContent.priceGroups || []).forEach(function (group) {
+      (group.items || []).forEach(function (item) {
+        var opt = document.createElement("option");
+        var label = currentLang === "en" ? (item.name_en || item.name_th) : item.name_th;
+        opt.value = item.name_th;
+        opt.textContent = label;
+        select.appendChild(opt);
+      });
+    });
+    select.value = previousValue || "";
+  }
+
   function renderDynamicContent() {
     renderPromo();
     renderPriceGroups();
     renderGalleryGrid();
+    renderBookingServices();
   }
 
   // lightbox (uses event delegation on #galleryGrid so it keeps working
@@ -1508,5 +1670,63 @@
       trackEvent("directions");
     }
   });
+
+  // ---- booking form ----
+  var bookingForm = document.getElementById("bookingForm");
+  if (bookingForm) {
+    var bkDateInput = document.getElementById("bkDate");
+    if (bkDateInput) {
+      var today = new Date();
+      var todayStr = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+      bkDateInput.min = todayStr;
+    }
+
+    var bookingMsg = document.getElementById("bookingMsg");
+    var bookingSubmitBtn = document.getElementById("bookingSubmitBtn");
+
+    bookingForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var dict = I18N[currentLang] || I18N.th;
+      var name = document.getElementById("bkName").value.trim();
+      var phone = document.getElementById("bkPhone").value.trim();
+      var date = document.getElementById("bkDate").value;
+      var time = document.getElementById("bkTime").value;
+      var service = document.getElementById("bkService").value;
+      var notes = document.getElementById("bkNotes").value.trim();
+
+      if (!name || !phone || !date || !time) {
+        bookingMsg.textContent = dict["booking.errorRequired"] || "";
+        bookingMsg.className = "booking-msg err";
+        return;
+      }
+
+      bookingSubmitBtn.disabled = true;
+      bookingMsg.textContent = dict["booking.submitting"] || "";
+      bookingMsg.className = "booking-msg";
+
+      fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name, phone: phone, date: date, time: time, service: service, notes: notes, lang: currentLang }),
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("booking failed");
+          return r.json();
+        })
+        .then(function () {
+          bookingMsg.textContent = dict["booking.success"] || "";
+          bookingMsg.className = "booking-msg ok";
+          bookingForm.reset();
+          if (bkDateInput) bkDateInput.min = todayStr;
+        })
+        .catch(function () {
+          bookingMsg.textContent = dict["booking.errorGeneric"] || "";
+          bookingMsg.className = "booking-msg err";
+        })
+        .finally(function () {
+          bookingSubmitBtn.disabled = false;
+        });
+    });
+  }
 })();
 </script>
