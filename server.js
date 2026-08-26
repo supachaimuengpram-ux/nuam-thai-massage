@@ -29,8 +29,12 @@ const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "";
 let mailTransporter = null;
 if (nodemailer && GMAIL_USER && GMAIL_APP_PASSWORD) {
   mailTransporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // use STARTTLS on 587 instead of implicit TLS on 465 —
+    // some PaaS hosts block outbound 465 while allowing 587
     auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+    connectionTimeout: 10000,
   });
 }
 
