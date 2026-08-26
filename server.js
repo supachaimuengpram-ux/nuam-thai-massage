@@ -27,11 +27,45 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 // account itself was signed up with.
 const RESEND_FROM = process.env.RESEND_FROM || "Nuam Thai Massage <onboarding@resend.dev>";
 
+// one-line, low-noise startup diagnostic — cheap to leave in permanently,
+// and the only way to prove (rather than guess) how DATA_DIR resolved and
+// whether the volume mount was actually visible at boot
+console.log(
+  "[boot] DATA_DIR=%s RAILWAY_VOLUME_MOUNT_PATH=%s dataDirExists=%s contentJsonExistsBeforeSeed=%s",
+  DATA_DIR,
+  process.env.RAILWAY_VOLUME_MOUNT_PATH || "(unset)",
+  fs.existsSync(DATA_DIR),
+  fs.existsSync(CONTENT_PATH)
+);
+
 // ---- first-boot seed: copy default content/images into the persistent volume ----
-function ensureSeeded() {
+// Railway does a healthcheck-gated rolling deploy: the new container starts
+// (and this module-level code runs) before the old container releases the
+// volume. A single-attach volume can briefly appear empty to the new
+// container while that handoff is in progress, which made fs.existsSync()
+// see "no file yet" and re-copy the seed over real data on every deploy.
+// Retrying with a short backoff instead of failing on the first check fixes
+// that race without needing to know Railway's exact internal timing.
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function ensureSeeded() {
   fs.mkdirSync(GALLERY_DIR, { recursive: true });
 
-  if (!fs.existsSync(CONTENT_PATH)) {
+  let contentExists = fs.existsSync(CONTENT_PATH);
+  if (!contentExists) {
+    const delaysMs = [100, 200, 300, 500, 500, 500, 1000, 1000, 1000, 1000]; // ~6s total
+    for (let i = 0; i < delaysMs.length && !contentExists; i++) {
+      await sleep(delaysMs[i]);
+      contentExists = fs.existsSync(CONTENT_PATH);
+      if (contentExists) {
+        console.log("[boot] content.json appeared after waiting", delaysMs.slice(0, i + 1).reduce((a, b) => a + b, 0), "ms — volume mount was just slow, not actually empty");
+      }
+    }
+  }
+
+  if (!contentExists) {
     fs.copyFileSync(SEED_CONTENT, CONTENT_PATH);
     console.log("Seeded content.json into", DATA_DIR);
   }
@@ -53,7 +87,6 @@ function ensureSeeded() {
     fs.writeFileSync(BOOKINGS_PATH, JSON.stringify({ items: [] }, null, 2), "utf-8");
   }
 }
-ensureSeeded();
 
 function readContent() {
   const parsed = JSON.parse(fs.readFileSync(CONTENT_PATH, "utf-8"));
@@ -413,6 +446,18 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`น่วม Thai Massage site running on port ${PORT}`);
-});
+// seeding must finish (including the volume-mount-visibility retry above)
+// before we start accepting requests, since the very first request could
+// otherwise read a not-yet-seeded/not-yet-mounted content.json
+ensureSeeded()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`น่วม Thai Massage site running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to seed data directory, starting anyway:", err.message);
+    app.listen(PORT, () => {
+      console.log(`น่วม Thai Massage site running on port ${PORT}`);
+    });
+  });
