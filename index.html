@@ -376,6 +376,17 @@
   .g7 { grid-column: span 2; grid-row: span 2;}
   .g8 { grid-column: span 2; grid-row: span 2;}
 
+  /* reviews */
+  .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .review-card {
+    margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md);
+    padding: 20px 22px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .review-stars { color: var(--gold); font-size: 15px; letter-spacing: 2px; }
+  .review-card p { margin: 0; font-size: 15px; line-height: 1.7; color: var(--ink); }
+  .review-card footer { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  .review-card footer span { font-weight: 400; color: var(--ink-faint); }
+
   /* hours */
   .hours-wrap { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 40px; align-items: start; }
   .hours-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
@@ -442,18 +453,51 @@
     .about-photo { order: -1; aspect-ratio: 16/9; }
     .about-photo img { aspect-ratio: 16/9; }
     .price-groups { grid-template-columns: 1fr; }
+    .review-grid { grid-template-columns: 1fr; }
     .gallery-grid { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 110px; }
     .g1, .g2 { grid-column: span 4; grid-row: span 2; }
     .g3, .g4, .g5, .g6, .g7, .g8 { grid-column: span 2; grid-row: span 1; }
   }
 
   @media (max-width: 600px) {
+    body { font-size: 16.5px; padding-bottom: 74px; }
     .topbar .btn span.full { display: none; }
     .hero { padding-top: 14px; }
-    .info-card { padding: 16px; }
-    .info-item { min-width: 46%; }
+    .hero-caption { left: 18px; right: 18px; bottom: 18px; }
+    .hero-caption h1 { font-size: 30px; }
+    .info-card { padding: 18px; gap: 18px; }
+    .info-item { min-width: 100%; gap: 12px; }
+    .info-item .label { font-size: 12px; margin-bottom: 1px; }
+    .info-item .value { font-size: 16px; line-height: 1.4; }
+    .info-item svg { width: 21px; height: 21px; }
+    .reviews-chip { font-size: 14px; padding-top: 4px; }
+    .section-nav a { padding: 14px 15px; font-size: 14.5px; }
+    .block { padding: 44px 0; }
+    .block-head h2 { font-size: 23px; }
+    .block-head p { font-size: 15px; }
+    .price-card { padding: 20px 18px 6px; }
+    .price-row { flex-wrap: wrap; row-gap: 10px; padding: 18px 0; }
+    .price-row .name { font-size: 16px; flex: 1 1 100%; }
+    .price-row .name span { font-size: 13px; }
+    .price-durations { width: 100%; justify-content: space-between; gap: 8px; }
+    .price-durations div { flex: 1; text-align: center; min-width: 0; }
+    .price-durations .min { font-size: 12px; }
+    .price-durations .baht { font-size: 17px; }
+    .review-card { padding: 18px; }
+    .review-card p { font-size: 15.5px; }
+    .gallery-grid figcaption { font-size: 12.5px; padding: 4px 9px; }
+    .hours-table td { padding: 14px 16px; font-size: 15px; }
+    .status-banner { padding: 18px; }
+    .status-banner .big { font-size: 16.5px; }
+    .loc-card .addr { font-size: 17px; }
+    .footer-grid { gap: 26px; }
+    .footer-col a, .footer-col p { font-size: 14.5px; }
+    .about-copy p { font-size: 15.5px; }
+    .feature-list { grid-template-columns: 1fr; gap: 12px; }
+    .feature-list li { font-size: 15px; }
+    .hero-tag { font-size: 13.5px; padding: 8px 15px 8px 11px; }
     .mobile-bar { display: flex; }
-    body { padding-bottom: 74px; }
+    .mobile-bar .btn { padding: 13px 16px; font-size: 15px; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 140px; }
     .g1, .g2 { grid-column: span 2; grid-row: span 2; }
     .g3, .g4, .g5, .g6, .g7, .g8 { grid-column: span 1; grid-row: span 1; }
@@ -507,7 +551,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
         <div>
           <div class="label">เวลาทำการ</div>
-          <div class="value">เปิดทุกวัน 10:00–22:00 น.</div>
+          <div class="value">เปิดทุกวัน 10:00–23:00 น.</div>
         </div>
       </div>
       <div class="info-item">
@@ -518,7 +562,7 @@
         </div>
       </div>
       <a class="reviews-chip" href="https://maps.app.goo.gl/PQnFUAKCsfo5zcG79" target="_blank" rel="noopener">
-        ★ ดูรีวิวร้านบน Google Maps
+        ★★★★★ 4.9 <span style="opacity:.75; font-weight:500;">(147 รีวิวบน Google Maps)</span>
       </a>
     </div>
   </div>
@@ -528,6 +572,7 @@
       <a href="#about">ภาพรวม</a>
       <a href="#services">บริการ &amp; ราคา</a>
       <a href="#gallery">ภาพบรรยากาศ</a>
+      <a href="#reviews">รีวิว</a>
       <a href="#hours">เวลาเปิด-ปิด</a>
       <a href="#location">แผนที่ &amp; เส้นทาง</a>
     </div>
@@ -656,10 +701,44 @@
       </div>
     </section>
 
+    <section class="block" id="reviews">
+      <div class="block-head">
+        <p class="eyebrow">เสียงจากลูกค้า</p>
+        <h2>รีวิวจริงจาก Google Maps</h2>
+        <p>คะแนนเฉลี่ย <strong style="color:var(--ink);">4.9 ★</strong> จาก 147 รีวิว — คัดมาบางส่วนให้อ่านกันตรงนี้</p>
+      </div>
+      <div class="review-grid">
+        <blockquote class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p>“ปวดคอกับสะบักจนนอนไม่ค่อยหลับ มาลองร้านนี้คือจบ หมอหาจุดจมเจอหมด นวดสะบักกับบ่าแบบถึงใจมาก ดีเยี่ยมเลยจ้า”</p>
+          <footer>Chaiyadach Jitkho <span>· 3 สัปดาห์ที่แล้ว</span></footer>
+        </blockquote>
+        <blockquote class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p>“มาลองนวด ร้านนวดเปิดใหม่ แต่ได้รับการบริการที่ดีมาก เกินความคาดหวังไว้เยอะ นวดตรงจุด อยากให้เน้นตรงไหล่ก็นวดให้ตามรีเควส ไว้จะมาใช้บริการอีกแน่นอนค่ะ”</p>
+          <footer>anchana Samanwiwat <span>· 2 เดือนที่แล้ว</span></footer>
+        </blockquote>
+        <blockquote class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p>“นวดอโรม่าดีมากกก บรรยากาศดี พนักงานบริการดีมาก สะอาด ฟิวสปาพรีเมี่ยม ราคาไม่แรง”</p>
+          <footer>ลูกค้า Google Maps</footer>
+        </blockquote>
+        <blockquote class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p>“ร้านน่ารักมากครับ สวยงาม นวดดีมาก มีคุณภาพครับ ภรรยามานวดซ้ำประจำบ่อยๆ”</p>
+          <footer>ลูกค้า Google Maps</footer>
+        </blockquote>
+      </div>
+      <a class="btn btn-ghost" href="https://maps.app.goo.gl/PQnFUAKCsfo5zcG79" target="_blank" rel="noopener" style="margin-top:24px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        ดูรีวิวทั้งหมด 147 รายการบน Google Maps
+      </a>
+    </section>
+
     <section class="block" id="hours">
       <div class="block-head">
         <p class="eyebrow">เวลาทำการ</p>
-        <h2>เปิดทุกวัน 10:00–22:00 น.</h2>
+        <h2>เปิดทุกวัน 10:00–23:00 น.</h2>
       </div>
       <div class="hours-wrap">
         <div>
@@ -674,13 +753,13 @@
         </div>
         <table class="hours-table" id="hoursTable">
           <tbody>
-            <tr data-day="1"><td>วันจันทร์</td><td>10:00–22:00</td></tr>
-            <tr data-day="2"><td>วันอังคาร</td><td>10:00–22:00</td></tr>
-            <tr data-day="3"><td>วันพุธ</td><td>10:00–22:00</td></tr>
-            <tr data-day="4"><td>วันพฤหัสบดี</td><td>10:00–22:00</td></tr>
-            <tr data-day="5"><td>วันศุกร์</td><td>10:00–22:00</td></tr>
-            <tr data-day="6"><td>วันเสาร์</td><td>10:00–22:00</td></tr>
-            <tr data-day="0"><td>วันอาทิตย์</td><td>10:00–22:00</td></tr>
+            <tr data-day="1"><td>วันจันทร์</td><td>10:00–23:00</td></tr>
+            <tr data-day="2"><td>วันอังคาร</td><td>10:00–23:00</td></tr>
+            <tr data-day="3"><td>วันพุธ</td><td>10:00–23:00</td></tr>
+            <tr data-day="4"><td>วันพฤหัสบดี</td><td>10:00–23:00</td></tr>
+            <tr data-day="5"><td>วันศุกร์</td><td>10:00–23:00</td></tr>
+            <tr data-day="6"><td>วันเสาร์</td><td>10:00–23:00</td></tr>
+            <tr data-day="0"><td>วันอาทิตย์</td><td>10:00–23:00</td></tr>
           </tbody>
         </table>
       </div>
@@ -750,7 +829,7 @@
         </div>
         <div class="footer-col">
           <h4>เวลาทำการ</h4>
-          <p>เปิดทุกวัน<br>10:00–22:00 น.</p>
+          <p>เปิดทุกวัน<br>10:00–23:00 น.</p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -775,7 +854,7 @@
 <script>
 (function () {
   var OPEN_MIN = 10 * 60;
-  var CLOSE_MIN = 22 * 60;
+  var CLOSE_MIN = 23 * 60;
   var DAY_NAMES = ["วันอาทิตย์","วันจันทร์","วันอังคาร","วันพุธ","วันพฤหัสบดี","วันศุกร์","วันเสาร์"];
 
   function bangkokParts() {
@@ -813,14 +892,14 @@
 
     if (isOpen) {
       var minsLeft = CLOSE_MIN - now.minutes;
-      var msg = "เปิดอยู่ตอนนี้ · ปิด 22:00 น.";
+      var msg = "เปิดอยู่ตอนนี้ · ปิด 23:00 น.";
       heroDot.classList.remove("closed");
       bannerDot.classList.remove("closed");
       heroText.textContent = msg;
       bannerStatus.textContent = "เปิดให้บริการอยู่ตอนนี้";
       bannerSub.textContent = minsLeft <= 60
-        ? "ปิดร้านในอีก " + minsLeft + " นาที (22:00 น.)"
-        : "เปิดถึง 22:00 น. · โทรจองคิวได้เลย";
+        ? "ปิดร้านในอีก " + minsLeft + " นาที (23:00 น.)"
+        : "เปิดถึง 23:00 น. · โทรจองคิวได้เลย";
     } else {
       heroDot.classList.add("closed");
       bannerDot.classList.add("closed");
