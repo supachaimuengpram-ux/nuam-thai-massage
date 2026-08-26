@@ -27,6 +27,35 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 // account itself was signed up with.
 const RESEND_FROM = process.env.RESEND_FROM || "Nuam Thai Massage <onboarding@resend.dev>";
 
+// ---- diagnostic logging: verify DATA_DIR / volume mount before seeding ----
+console.log("[diag] process.env.DATA_DIR =", process.env.DATA_DIR);
+console.log("[diag] resolved DATA_DIR =", DATA_DIR);
+console.log("[diag] CONTENT_PATH =", CONTENT_PATH);
+console.log("[diag] fs.existsSync(CONTENT_PATH) =", fs.existsSync(CONTENT_PATH));
+try {
+  const dataMountExists = fs.existsSync("/data");
+  const dataMountIsDir = dataMountExists && fs.statSync("/data").isDirectory();
+  let dataMountReadable = false;
+  if (dataMountExists) {
+    try {
+      fs.accessSync("/data", fs.constants.R_OK);
+      dataMountReadable = true;
+    } catch (accessErr) {
+      dataMountReadable = false;
+    }
+  }
+  console.log(
+    "[diag] /data exists =",
+    dataMountExists,
+    "| isDirectory =",
+    dataMountIsDir,
+    "| readable =",
+    dataMountReadable
+  );
+} catch (diagErr) {
+  console.log("[diag] error while inspecting /data:", diagErr.message);
+}
+
 // ---- first-boot seed: copy default content/images into the persistent volume ----
 function ensureSeeded() {
   fs.mkdirSync(GALLERY_DIR, { recursive: true });
