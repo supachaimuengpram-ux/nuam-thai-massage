@@ -58,6 +58,53 @@
     font-size: 14px;
     font-weight: 600;
   }
+
+  .tabnav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: var(--header-h, 61px);
+    z-index: 9;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabnav::-webkit-scrollbar { display: none; }
+  .tabnav-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    padding: 0 16px;
+  }
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: transparent;
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    padding: 13px 12px 11px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-badge {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 3px 6px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tab-btn:not(.active) .tab-badge { background: var(--line-strong); color: var(--ink-soft); }
+
   main {
     max-width: 780px;
     margin: 0 auto;
@@ -66,6 +113,8 @@
     flex-direction: column;
     gap: 24px;
   }
+  .tab-panel { display: none; flex-direction: column; gap: 24px; }
+  .tab-panel.active { display: flex; }
   section.panel {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -273,6 +322,10 @@
   <a href="/" target="_blank" rel="noopener">ดูหน้าเว็บไซต์ →</a>
 </header>
 
+<nav class="tabnav" id="tabnav" style="display:none;">
+  <div class="tabnav-inner" id="tabnavInner"></div>
+</nav>
+
 <main id="app">
   <div class="loading">กำลังโหลดข้อมูล...</div>
 </main>
@@ -287,6 +340,7 @@
   var content = null;
   var stats = null;
   var bookings = null;
+  var activeTab = null;
   var THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
   // stats are bucketed in Asia/Bangkok time server-side; mirror that here
@@ -545,18 +599,58 @@
     return { section: sec, notifyEmailInput: notifyEmailInput };
   }
 
+  function countUncontacted() {
+    var items = (bookings && bookings.items) || [];
+    return items.filter(function (b) { return !b.contacted; }).length;
+  }
+
+  function applyActiveTab() {
+    var panels = document.querySelectorAll(".tab-panel");
+    panels.forEach(function (p) {
+      p.classList.toggle("active", p.getAttribute("data-tab") === activeTab);
+    });
+    var btns = document.querySelectorAll(".tab-btn");
+    btns.forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-tab") === activeTab);
+    });
+  }
+
+  function switchTab(id) {
+    activeTab = id;
+    applyActiveTab();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function buildTabNav(tabDefs) {
+    var inner = document.getElementById("tabnavInner");
+    inner.innerHTML = "";
+    tabDefs.forEach(function (t) {
+      var btn = el("button", { class: "tab-btn", type: "button", "data-tab": t.id });
+      btn.appendChild(document.createTextNode(t.label));
+      if (t.badge) {
+        btn.appendChild(el("span", { class: "tab-badge" }, [document.createTextNode(String(t.badge))]));
+      }
+      btn.addEventListener("click", function () { switchTab(t.id); });
+      inner.appendChild(btn);
+    });
+    document.getElementById("tabnav").style.display = "block";
+  }
+
   function render() {
     var app = document.getElementById("app");
     app.innerHTML = "";
+    var tabDefs = [];
 
     // ---- stats ----
     if (stats) {
-      app.appendChild(renderStatsSection(stats));
+      app.appendChild(el("div", { class: "tab-panel", "data-tab": "stats" }, [renderStatsSection(stats)]));
+      tabDefs.push({ id: "stats", label: "สถิติ" });
     }
 
     // ---- bookings ----
     var bookingsResult = renderBookingsSection(bookings, content);
-    app.appendChild(bookingsResult.section);
+    app.appendChild(el("div", { class: "tab-panel", "data-tab": "bookings" }, [bookingsResult.section]));
+    tabDefs.push({ id: "bookings", label: "คำขอจองคิว", badge: countUncontacted() });
     var notifyEmailInput = bookingsResult.notifyEmailInput;
 
     // ---- promo ----
@@ -590,7 +684,8 @@
     ]);
     promoSec.appendChild(promoRow);
     promoSec.appendChild(promoNoteRow);
-    app.appendChild(promoSec);
+    app.appendChild(el("div", { class: "tab-panel", "data-tab": "promo" }, [promoSec]));
+    tabDefs.push({ id: "promo", label: "โปรโมชัน" });
 
     // ---- prices ----
     var priceSec = el("section", { class: "panel" });
@@ -617,7 +712,8 @@
       field("หมายเหตุราคา (ไทย)", noteTh),
       field("Price note (English)", noteEn),
     ]));
-    app.appendChild(priceSec);
+    app.appendChild(el("div", { class: "tab-panel", "data-tab": "prices" }, [priceSec]));
+    tabDefs.push({ id: "prices", label: "ราคา & บริการ" });
 
     // ---- gallery ----
     var gallerySec = el("section", { class: "panel" });
@@ -629,7 +725,8 @@
     });
     grid.appendChild(renderUploadNewCard());
     gallerySec.appendChild(grid);
-    app.appendChild(gallerySec);
+    app.appendChild(el("div", { class: "tab-panel", "data-tab": "gallery" }, [gallerySec]));
+    tabDefs.push({ id: "gallery", label: "แกลเลอรี" });
 
     // collect functions for save
     window.__collect = function () {
@@ -644,6 +741,12 @@
       content.priceNote.en = noteEn.value;
       return content;
     };
+
+    buildTabNav(tabDefs);
+    if (!activeTab || !tabDefs.some(function (t) { return t.id === activeTab; })) {
+      activeTab = tabDefs[0].id;
+    }
+    applyActiveTab();
 
     document.getElementById("savebar").style.display = "flex";
   }
@@ -805,6 +908,15 @@
   }
 
   document.getElementById("saveBtn").addEventListener("click", saveContent);
+
+  // keep the tab bar pinned right under the header, whatever its actual
+  // rendered height is (it can wrap to two lines on narrow screens)
+  function syncHeaderHeight() {
+    var header = document.querySelector("header");
+    if (header) document.documentElement.style.setProperty("--header-h", header.offsetHeight + "px");
+  }
+  syncHeaderHeight();
+  window.addEventListener("resize", syncHeaderHeight);
 
   fetch("/api/stats", { credentials: "same-origin" })
     .then(function (r) { return r.ok ? r.json() : null; })
