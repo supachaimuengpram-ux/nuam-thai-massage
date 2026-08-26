@@ -93,6 +93,7 @@ app.use(express.json({ limit: "2mb" }));
 
 // ---- public content API (read) ----
 app.get("/api/content", (req, res) => {
+  res.set("Cache-Control", "no-store");
   try {
     res.json(readContent());
   } catch (err) {
