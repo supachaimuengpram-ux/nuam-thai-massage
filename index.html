@@ -7,25 +7,27 @@
 
 <style>
   :root {
-    --bg: #FFFFFF;
-    --surface: #FFFFFF;
-    --surface-2: #F1F3F4;
-    --surface-3: #E8EAED;
-    --ink: #202124;
-    --ink-soft: #5F6368;
-    --ink-faint: #80868B;
-    --accent: #1A73E8;
-    --accent-hover: #174EA6;
-    --accent-ink: #FFFFFF;
-    --sage: #1E8E3E;
+    --bg: #FBF6EE;
+    --surface: #FFFDF9;
+    --surface-2: #F1E7D6;
+    --surface-3: #EADFCB;
+    --ink: #34281C;
+    --ink-soft: #6E5D49;
+    --ink-faint: #93826C;
+    --accent: #B5603C;
+    --accent-hover: #9C4F30;
+    --accent-ink: #FFF7EF;
+    --link: #1A73E8;
+    --link-hover: #174EA6;
+    --sage: #6F7B54;
     --sage-ink: #FFFFFF;
     --gold: #FBBC04;
     --pin: #EA4335;
-    --line: rgba(32, 33, 36, 0.12);
-    --line-strong: rgba(32, 33, 36, 0.20);
-    --shadow: 0 1px 2px rgba(60, 64, 67, 0.30), 0 4px 14px -6px rgba(60, 64, 67, 0.30);
-    --open-dot: #188038;
-    --closed-dot: #D93025;
+    --line: rgba(52, 40, 28, 0.13);
+    --line-strong: rgba(52, 40, 28, 0.22);
+    --shadow: 0 18px 40px -22px rgba(52, 40, 28, 0.45);
+    --open-dot: #4F7A4A;
+    --closed-dot: #A54B3F;
     --radius-lg: 22px;
     --radius-md: 14px;
     --radius-sm: 9px;
@@ -33,48 +35,52 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #202124;
-      --surface: #2D2E30;
-      --surface-2: #28292C;
-      --surface-3: #3C4043;
-      --ink: #E8EAED;
-      --ink-soft: #9AA0A6;
-      --ink-faint: #80868B;
-      --accent: #8AB4F8;
-      --accent-hover: #AECBFA;
-      --accent-ink: #202124;
-      --sage: #81C995;
-      --sage-ink: #0F3F1C;
+      --bg: #211810;
+      --surface: #2A2015;
+      --surface-2: #332619;
+      --surface-3: #3D2E1E;
+      --ink: #F4EADA;
+      --ink-soft: #CBB89F;
+      --ink-faint: #9C876D;
+      --accent: #E08A57;
+      --accent-hover: #EB9C6D;
+      --accent-ink: #2A1608;
+      --link: #8AB4F8;
+      --link-hover: #AECBFA;
+      --sage: #A6B385;
+      --sage-ink: #1D2313;
       --gold: #FDD663;
       --pin: #F28B82;
-      --line: rgba(232, 234, 237, 0.14);
-      --line-strong: rgba(232, 234, 237, 0.24);
-      --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 4px 14px -6px rgba(0, 0, 0, 0.5);
-      --open-dot: #81C995;
-      --closed-dot: #F28B82;
+      --line: rgba(244, 234, 218, 0.14);
+      --line-strong: rgba(244, 234, 218, 0.24);
+      --shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.6);
+      --open-dot: #86C27E;
+      --closed-dot: #E4897A;
     }
   }
 
   :root[data-theme="dark"] {
-    --bg: #202124;
-    --surface: #2D2E30;
-    --surface-2: #28292C;
-    --surface-3: #3C4043;
-    --ink: #E8EAED;
-    --ink-soft: #9AA0A6;
-    --ink-faint: #80868B;
-    --accent: #8AB4F8;
-    --accent-hover: #AECBFA;
-    --accent-ink: #202124;
-    --sage: #81C995;
-    --sage-ink: #0F3F1C;
+    --bg: #211810;
+    --surface: #2A2015;
+    --surface-2: #332619;
+    --surface-3: #3D2E1E;
+    --ink: #F4EADA;
+    --ink-soft: #CBB89F;
+    --ink-faint: #9C876D;
+    --accent: #E08A57;
+    --accent-hover: #EB9C6D;
+    --accent-ink: #2A1608;
+    --link: #8AB4F8;
+    --link-hover: #AECBFA;
+    --sage: #A6B385;
+    --sage-ink: #1D2313;
     --gold: #FDD663;
     --pin: #F28B82;
-    --line: rgba(232, 234, 237, 0.14);
-    --line-strong: rgba(232, 234, 237, 0.24);
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 4px 14px -6px rgba(0, 0, 0, 0.5);
-    --open-dot: #81C995;
-    --closed-dot: #F28B82;
+    --line: rgba(244, 234, 218, 0.14);
+    --line-strong: rgba(244, 234, 218, 0.24);
+    --shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.6);
+    --open-dot: #86C27E;
+    --closed-dot: #E4897A;
   }
 
   * { box-sizing: border-box; }
@@ -176,6 +182,8 @@
   .btn svg { width: 16px; height: 16px; flex: none; }
   .btn-accent { background: var(--accent); color: var(--accent-ink); }
   .btn-accent:hover { background: var(--accent-hover); }
+  .btn-link { background: var(--link); color: #FFFFFF; }
+  .btn-link:hover { background: var(--link-hover); }
   .btn-ghost {
     background: transparent;
     color: var(--ink);
@@ -205,7 +213,7 @@
   .hero-photo::after {
     content: "";
     position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(32,33,36,0) 40%, rgba(32,33,36,0.72) 100%);
+    background: linear-gradient(180deg, rgba(20,14,8,0) 40%, rgba(20,14,8,0.72) 100%);
   }
   .hero-tag {
     position: absolute;
@@ -228,17 +236,17 @@
     position: absolute;
     left: 24px; right: 24px; bottom: 22px;
     z-index: 2;
-    color: #FFFFFF;
+    color: #FBF6EE;
   }
-  .hero-caption .eyebrow { color: rgba(255,255,255,0.82); }
-  .hero-caption h1 { font-size: clamp(30px, 5vw, 46px); color: #FFFFFF; }
+  .hero-caption .eyebrow { color: rgba(251,246,238,0.82); }
+  .hero-caption h1 { font-size: clamp(30px, 5vw, 46px); color: #FFFDF8; }
   .hero-caption .tagline {
     margin-top: 6px;
     font-family: "Noto Serif Thai", serif;
     font-style: italic;
     font-size: 15px;
     letter-spacing: 0.06em;
-    color: rgba(255,255,255,0.88);
+    color: rgba(251,246,238,0.88);
   }
 
   /* info panel overlapping hero */
@@ -265,7 +273,7 @@
   .info-item svg { width: 19px; height: 19px; flex: none; margin-top: 2px; color: var(--accent); }
   .info-item .label { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); }
   .info-item .value { font-size: 14.5px; font-weight: 600; color: var(--ink); }
-  .info-item a.value:hover { color: var(--accent); }
+  .info-item a.value:hover { color: var(--link); }
   .reviews-chip {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 13px; font-weight: 600; color: var(--gold);
@@ -302,7 +310,7 @@
     border-bottom: 2.5px solid transparent;
     white-space: nowrap;
   }
-  .section-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .section-nav a.active { color: var(--link); border-bottom-color: var(--link); }
 
   /* ---------- generic section ---------- */
   section.block { padding: 56px 0; border-bottom: 1px solid var(--line); }
@@ -370,8 +378,8 @@
   .gallery-grid a:hover img { transform: scale(1.05); }
   .gallery-grid figcaption {
     position: absolute; left: 8px; bottom: 7px; z-index: 2;
-    font-size: 11.5px; font-weight: 600; color: #FFFFFF;
-    background: rgba(32,33,36,0.55); padding: 3px 8px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 600; color: #FFF7EE;
+    background: rgba(30,20,12,0.55); padding: 3px 8px; border-radius: 999px;
   }
 
   /* lightbox */
@@ -448,7 +456,7 @@
   .hours-table td:first-child { font-weight: 600; }
   .hours-table td:last-child { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
   .hours-table tr.today { background: var(--surface-2); }
-  .hours-table tr.today td { color: var(--accent); font-weight: 700; }
+  .hours-table tr.today td { color: var(--link); font-weight: 700; }
   .status-banner {
     display: flex; align-items: center; gap: 12px;
     background: var(--surface-2);
@@ -487,7 +495,7 @@
   .footer-brand .tagline { font-style: italic; color: var(--ink-faint); font-size: 13px; margin-top: 4px; }
   .footer-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin-bottom: 10px; }
   .footer-col a, .footer-col p { display: block; font-size: 14px; color: var(--ink-soft); text-decoration: none; margin-bottom: 6px; }
-  .footer-col a:hover { color: var(--accent); }
+  .footer-col a:hover { color: var(--link); }
   .footer-bottom { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
   /* mobile call bar */
@@ -847,7 +855,7 @@
             <div class="addr-sub">35/95 Uptown Apartment แขวงจันทรเกษม เขตจตุจักร กรุงเทพมหานคร 10900</div>
           </div>
           <div class="loc-actions">
-            <a class="btn btn-accent" href="https://maps.app.goo.gl/PQnFUAKCsfo5zcG79" target="_blank" rel="noopener">
+            <a class="btn btn-link" href="https://maps.app.goo.gl/PQnFUAKCsfo5zcG79" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               เปิดใน Google Maps
             </a>
