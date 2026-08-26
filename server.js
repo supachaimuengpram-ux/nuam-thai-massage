@@ -384,7 +384,11 @@ app.get(["/admin", "/admin.html"], requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-app.use(express.static(__dirname, { extensions: ["html"] }));
+// only /videos is meant to be public here — do NOT blanket-serve __dirname,
+// since that would also expose server.js, package.json, content.seed.json,
+// and the root images/ folder (which is only an internal seed source; real
+// gallery images are served from DATA_DIR via /uploads above)
+app.use("/videos", express.static(path.join(__dirname, "videos")));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
