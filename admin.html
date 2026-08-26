@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>แผงควบคุมเว็บไซต์ · น่วม Thai Massage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF6EE;
+    --surface: #FFFDF9;
+    --surface-2: #F1E7D6;
+    --ink: #34281C;
+    --ink-soft: #6E5D49;
+    --ink-faint: #93826C;
+    --accent: #B5603C;
+    --accent-hover: #9C4F30;
+    --accent-ink: #FFF7EF;
+    --line: #E7DAC4;
+    --line-strong: #D8C6A6;
+    --good: #1E8E3E;
+    --bad: #C5221F;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans Thai", system-ui, sans-serif;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 {
+    font-family: "Noto Serif Thai", serif;
+    font-size: 19px;
+    margin: 0;
+  }
+  header a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  section.panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  section.panel h2 {
+    font-size: 16px;
+    margin: 0 0 4px;
+  }
+  section.panel .desc {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0 0 16px;
+  }
+  label {
+    display: block;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  input[type="text"], input[type="number"], textarea {
+    width: 100%;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fff;
+    color: var(--ink);
+  }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field { margin-bottom: 12px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .switch-line { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .switch {
+    position: relative; width: 42px; height: 24px; flex: none;
+  }
+  .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .switch .track {
+    position: absolute; inset: 0; background: var(--line-strong); border-radius: 999px; transition: background 0.15s;
+  }
+  .switch .thumb {
+    position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%;
+    transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .switch input:checked ~ .track { background: var(--accent); }
+  .switch input:checked ~ .thumb { transform: translateX(18px); }
+
+  .price-group {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: var(--surface-2);
+  }
+  .price-item {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-accent { background: var(--accent); color: var(--accent-ink); }
+  .btn-accent:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line-strong); }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-danger { background: transparent; color: var(--bad); border: 1px solid #E7B7B4; }
+  .btn-danger:hover { background: #FCEDEC; }
+  .btn-sm { padding: 6px 12px; font-size: 12.5px; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .item-actions, .group-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+  .gallery-grid-admin {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 14px;
+  }
+  .photo-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+  .photo-card img {
+    width: 100%; height: 130px; object-fit: cover; display: block; background: #ddd;
+  }
+  .photo-card .body { padding: 10px; }
+  .photo-card .field { margin-bottom: 8px; }
+  .photo-card .field label { font-size: 11px; }
+  .upload-new {
+    border: 2px dashed var(--line-strong);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    cursor: pointer;
+    text-align: center;
+    padding: 16px;
+  }
+  .upload-new:hover { border-color: var(--accent); color: var(--accent); }
+
+  .savebar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 20;
+  }
+  .status-msg { font-size: 13px; font-weight: 600; }
+  .status-msg.ok { color: var(--good); }
+  .status-msg.err { color: var(--bad); }
+  .hint { color: var(--ink-faint); font-size: 12px; margin-top: 2px; }
+  .loading { text-align: center; padding: 60px 0; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<header>
+  <h1>แผงควบคุมเว็บไซต์ · น่วม Thai Massage</h1>
+  <a href="/" target="_blank" rel="noopener">ดูหน้าเว็บไซต์ →</a>
+</header>
+
+<main id="app">
+  <div class="loading">กำลังโหลดข้อมูล...</div>
+</main>
+
+<div class="savebar" id="savebar" style="display:none;">
+  <button class="btn btn-accent" id="saveBtn">บันทึกการเปลี่ยนแปลง</button>
+  <span class="status-msg" id="statusMsg"></span>
+</div>
+
+<script>
+(function () {
+  var content = null;
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === "class") node.className = attrs[k];
+      else if (k === "html") node.innerHTML = attrs[k];
+      else node.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) node.appendChild(c); });
+    return node;
+  }
+
+  function field(labelText, inputEl) {
+    var wrap = el("div", { class: "field" });
+    wrap.appendChild(el("label", {}, [document.createTextNode(labelText)]));
+    wrap.appendChild(inputEl);
+    return wrap;
+  }
+
+  function textInput(value) {
+    var i = el("input", { type: "text" });
+    i.value = value || "";
+    return i;
+  }
+
+  function numberInput(value) {
+    var i = el("input", { type: "number" });
+    i.value = value != null ? value : "";
+    return i;
+  }
+
+  function setStatus(text, kind) {
+    var s = document.getElementById("statusMsg");
+    s.textContent = text;
+    s.className = "status-msg " + (kind || "");
+    if (text) {
+      setTimeout(function () { if (s.textContent === text) s.textContent = ""; }, 4000);
+    }
+  }
+
+  function render() {
+    var app = document.getElementById("app");
+    app.innerHTML = "";
+
+    // ---- promo ----
+    var promoSec = el("section", { class: "panel" });
+    promoSec.appendChild(el("h2", {}, [document.createTextNode("โปรโมชัน")]));
+    promoSec.appendChild(el("p", { class: "desc" }, [document.createTextNode("ป้ายโปรโมชันจะแสดงด้านบนหน้าเว็บไซต์เมื่อเปิดใช้งาน")]));
+
+    var switchLine = el("div", { class: "switch-line" });
+    var switchLabel = el("label", { class: "switch", style: "margin:0;" });
+    switchLabel.removeAttribute("style");
+    var promoToggle = el("input", { type: "checkbox" });
+    promoToggle.checked = !!content.promo.enabled;
+    switchLabel.appendChild(promoToggle);
+    switchLabel.appendChild(el("span", { class: "track" }));
+    switchLabel.appendChild(el("span", { class: "thumb" }));
+    switchLine.appendChild(switchLabel);
+    switchLine.appendChild(el("span", {}, [document.createTextNode("เปิดใช้งานป้ายโปรโมชัน")]));
+    promoSec.appendChild(switchLine);
+
+    var promoTh = textInput(content.promo.th);
+    var promoEn = textInput(content.promo.en);
+    var promoNoteTh = textInput(content.promo.note_th);
+    var promoNoteEn = textInput(content.promo.note_en);
+    var promoRow = el("div", { class: "row2" }, [
+      field("ข้อความโปรโมชัน (ไทย)", promoTh),
+      field("Promotion text (English)", promoEn),
+    ]);
+    var promoNoteRow = el("div", { class: "row2" }, [
+      field("เงื่อนไข (ไทย)", promoNoteTh),
+      field("Terms note (English)", promoNoteEn),
+    ]);
+    promoSec.appendChild(promoRow);
+    promoSec.appendChild(promoNoteRow);
+    app.appendChild(promoSec);
+
+    // ---- prices ----
+    var priceSec = el("section", { class: "panel" });
+    priceSec.appendChild(el("h2", {}, [document.createTextNode("บริการ & ราคา")]));
+    priceSec.appendChild(el("p", { class: "desc" }, [document.createTextNode("แก้ไขชื่อรายการและราคาตามรอบเวลา (บาท)")]));
+
+    var groupsWrap = el("div", { id: "groupsWrap" });
+    content.priceGroups.forEach(function (group) {
+      groupsWrap.appendChild(renderPriceGroup(group));
+    });
+    priceSec.appendChild(groupsWrap);
+
+    var addGroupBtn = el("button", { class: "btn btn-ghost", type: "button" }, [document.createTextNode("+ เพิ่มหมวดหมู่ใหม่")]);
+    addGroupBtn.addEventListener("click", function () {
+      var newGroup = { title_th: "หมวดหมู่ใหม่", title_en: "New category", items: [] };
+      content.priceGroups.push(newGroup);
+      groupsWrap.appendChild(renderPriceGroup(newGroup));
+    });
+    priceSec.appendChild(addGroupBtn);
+
+    var noteTh = textInput(content.priceNote.th);
+    var noteEn = textInput(content.priceNote.en);
+    priceSec.appendChild(el("div", { class: "row2", style: "margin-top:14px;" }, [
+      field("หมายเหตุราคา (ไทย)", noteTh),
+      field("Price note (English)", noteEn),
+    ]));
+    app.appendChild(priceSec);
+
+    // ---- gallery ----
+    var gallerySec = el("section", { class: "panel" });
+    gallerySec.appendChild(el("h2", {}, [document.createTextNode("รูปภาพแกลเลอรี")]));
+    gallerySec.appendChild(el("p", { class: "desc" }, [document.createTextNode("อัปโหลดรูปใหม่จะบันทึกทันที ส่วนคำบรรยายให้กด \"บันทึกการเปลี่ยนแปลง\" ด้านล่าง")]));
+    var grid = el("div", { class: "gallery-grid-admin", id: "galleryGridAdmin" });
+    content.gallery.forEach(function (photo, idx) {
+      grid.appendChild(renderPhotoCard(photo, idx));
+    });
+    grid.appendChild(renderUploadNewCard());
+    gallerySec.appendChild(grid);
+    app.appendChild(gallerySec);
+
+    // collect functions for save
+    window.__collect = function () {
+      content.promo.enabled = promoToggle.checked;
+      content.promo.th = promoTh.value;
+      content.promo.en = promoEn.value;
+      content.promo.note_th = promoNoteTh.value;
+      content.promo.note_en = promoNoteEn.value;
+      content.priceNote.th = noteTh.value;
+      content.priceNote.en = noteEn.value;
+      return content;
+    };
+
+    document.getElementById("savebar").style.display = "flex";
+  }
+
+  function renderPriceGroup(group) {
+    var box = el("div", { class: "price-group" });
+    var titleTh = textInput(group.title_th);
+    var titleEn = textInput(group.title_en);
+    titleTh.addEventListener("input", function () { group.title_th = titleTh.value; });
+    titleEn.addEventListener("input", function () { group.title_en = titleEn.value; });
+    box.appendChild(el("div", { class: "row2" }, [
+      field("ชื่อหมวดหมู่ (ไทย)", titleTh),
+      field("Category name (English)", titleEn),
+    ]));
+
+    var itemsWrap = el("div");
+    group.items.forEach(function (item) {
+      itemsWrap.appendChild(renderPriceItem(group, item, itemsWrap));
+    });
+    box.appendChild(itemsWrap);
+
+    var actions = el("div", { class: "group-actions" });
+    var addItemBtn = el("button", { class: "btn btn-ghost btn-sm", type: "button" }, [document.createTextNode("+ เพิ่มรายการ")]);
+    addItemBtn.addEventListener("click", function () {
+      var newItem = { name_th: "รายการใหม่", name_en: "New item", p60: 0, p90: 0, p120: 0 };
+      group.items.push(newItem);
+      itemsWrap.appendChild(renderPriceItem(group, newItem, itemsWrap));
+    });
+    var removeGroupBtn = el("button", { class: "btn btn-danger btn-sm", type: "button" }, [document.createTextNode("ลบหมวดหมู่นี้")]);
+    removeGroupBtn.addEventListener("click", function () {
+      if (!confirm("ลบหมวดหมู่นี้ทั้งหมด?")) return;
+      var i = content.priceGroups.indexOf(group);
+      if (i > -1) content.priceGroups.splice(i, 1);
+      box.remove();
+    });
+    actions.appendChild(addItemBtn);
+    actions.appendChild(removeGroupBtn);
+    box.appendChild(actions);
+
+    return box;
+  }
+
+  function renderPriceItem(group, item, itemsWrap) {
+    var card = el("div", { class: "price-item" });
+    var nameTh = textInput(item.name_th);
+    var nameEn = textInput(item.name_en);
+    var p60 = numberInput(item.p60);
+    var p90 = numberInput(item.p90);
+    var p120 = numberInput(item.p120);
+    nameTh.addEventListener("input", function () { item.name_th = nameTh.value; });
+    nameEn.addEventListener("input", function () { item.name_en = nameEn.value; });
+    p60.addEventListener("input", function () { item.p60 = parseInt(p60.value, 10) || 0; });
+    p90.addEventListener("input", function () { item.p90 = parseInt(p90.value, 10) || 0; });
+    p120.addEventListener("input", function () { item.p120 = parseInt(p120.value, 10) || 0; });
+
+    card.appendChild(el("div", { class: "row2" }, [
+      field("ชื่อรายการ (ไทย)", nameTh),
+      field("Item name (English)", nameEn),
+    ]));
+    card.appendChild(el("div", { class: "row3" }, [
+      field("ราคา 60 นาที", p60),
+      field("ราคา 90 นาที", p90),
+      field("ราคา 120 นาที", p120),
+    ]));
+    var removeBtn = el("button", { class: "btn btn-danger btn-sm", type: "button" }, [document.createTextNode("ลบรายการนี้")]);
+    removeBtn.addEventListener("click", function () {
+      var i = group.items.indexOf(item);
+      if (i > -1) group.items.splice(i, 1);
+      card.remove();
+    });
+    card.appendChild(el("div", { class: "item-actions" }, [removeBtn]));
+    return card;
+  }
+
+  function renderPhotoCard(photo, idx) {
+    var card = el("div", { class: "photo-card" });
+    var img = el("img", { src: "/uploads/" + photo.file, alt: "" });
+    card.appendChild(img);
+    var body = el("div", { class: "body" });
+
+    var capTh = textInput(photo.caption_th);
+    var capEn = textInput(photo.caption_en);
+    capTh.addEventListener("input", function () { photo.caption_th = capTh.value; });
+    capEn.addEventListener("input", function () { photo.caption_en = capEn.value; });
+    body.appendChild(field("คำบรรยาย (ไทย)", capTh));
+    body.appendChild(field("Caption (English)", capEn));
+
+    var fileInput = el("input", { type: "file", accept: "image/jpeg,image/png,image/webp", style: "font-size:12px;width:100%;" });
+    fileInput.addEventListener("change", function () {
+      if (!fileInput.files[0]) return;
+      uploadPhoto(fileInput.files[0], idx, img);
+    });
+    body.appendChild(field("เปลี่ยนรูปนี้", fileInput));
+
+    var delBtn = el("button", { class: "btn btn-danger btn-sm", type: "button" }, [document.createTextNode("ลบรูปนี้")]);
+    delBtn.addEventListener("click", function () {
+      if (!confirm("ลบรูปนี้ออกจากแกลเลอรี?")) return;
+      deletePhoto(idx, card);
+    });
+    body.appendChild(delBtn);
+
+    card.appendChild(body);
+    return card;
+  }
+
+  function renderUploadNewCard() {
+    var wrap = el("div", { class: "photo-card" });
+    var box = el("div", { class: "upload-new" }, [document.createTextNode("+ เพิ่มรูปใหม่\n(คลิกเพื่อเลือกไฟล์)")]);
+    var fileInput = el("input", { type: "file", accept: "image/jpeg,image/png,image/webp", style: "display:none;" });
+    box.addEventListener("click", function () { fileInput.click(); });
+    fileInput.addEventListener("change", function () {
+      if (!fileInput.files[0]) return;
+      uploadPhoto(fileInput.files[0], null, null);
+    });
+    wrap.appendChild(box);
+    wrap.appendChild(fileInput);
+    return wrap;
+  }
+
+  function uploadPhoto(file, index, imgElToUpdate) {
+    var fd = new FormData();
+    fd.append("image", file);
+    if (index !== null && index !== undefined) fd.append("index", index);
+    setStatus("กำลังอัปโหลดรูป...", "");
+    fetch("/api/upload/gallery", { method: "POST", body: fd, credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error("upload failed"); return r.json(); })
+      .then(function (data) {
+        content = data.content;
+        setStatus("อัปโหลดรูปสำเร็จ", "ok");
+        render();
+      })
+      .catch(function () { setStatus("อัปโหลดรูปไม่สำเร็จ", "err"); });
+  }
+
+  function deletePhoto(index, cardEl) {
+    setStatus("กำลังลบรูป...", "");
+    fetch("/api/gallery/" + index + "/delete", { method: "POST", credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error("delete failed"); return r.json(); })
+      .then(function (data) {
+        content = data.content;
+        setStatus("ลบรูปสำเร็จ", "ok");
+        render();
+      })
+      .catch(function () { setStatus("ลบรูปไม่สำเร็จ", "err"); });
+  }
+
+  function saveContent() {
+    var payload = window.__collect();
+    setStatus("กำลังบันทึก...", "");
+    fetch("/api/content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) { if (!r.ok) throw new Error("save failed"); return r.json(); })
+      .then(function () { setStatus("บันทึกเรียบร้อยแล้ว ✓", "ok"); })
+      .catch(function () { setStatus("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง", "err"); });
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", saveContent);
+
+  fetch("/api/content", { credentials: "same-origin" })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      content = data;
+      render();
+    })
+    .catch(function () {
+      document.getElementById("app").innerHTML = "<div class=\"loading\">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรชหน้า</div>";
+    });
+})();
+</script>
+</body>
+</html>

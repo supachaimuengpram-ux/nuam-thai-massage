@@ -1,0 +1,45 @@
+{
+  "promo": {
+    "enabled": false,
+    "th": "โปรโมชัน: สครับตัว + อโรมา 2 ชม. 999 บาท",
+    "en": "Promotion: Body Scrub + Aroma, 2 hrs — 999 THB",
+    "note_th": "เงื่อนไขเป็นไปตามที่ร้านกำหนด",
+    "note_en": "Terms and conditions apply"
+  },
+  "priceNote": {
+    "th": "ราคาทั้งหมดเป็นหน่วยบาท · โทรสอบถามคิวว่างก่อนเข้าใช้บริการ",
+    "en": "All prices in Thai baht · Please call ahead to check availability"
+  },
+  "priceGroups": [
+    {
+      "title_th": "นวดผ่อนคลาย & บำบัดเฉพาะจุด",
+      "title_en": "Relaxation & Targeted Therapy",
+      "items": [
+        { "name_th": "นวดไทยออยล์", "name_en": "Thai Oil Massage", "p60": 350, "p90": 550, "p120": 700 },
+        { "name_th": "นวดไทยรีดเส้น", "name_en": "Deep Tissue Massage", "p60": 350, "p90": 550, "p120": 700 },
+        { "name_th": "นวดอโรม่า", "name_en": "Aroma Massage", "p60": 500, "p90": 750, "p120": 1000 },
+        { "name_th": "นวดออฟฟิศซินโดรม", "name_en": "Office Syndrome Therapy", "p60": 450, "p90": 700, "p120": 900 }
+      ]
+    },
+    {
+      "title_th": "นวดแผนไทย & ผ่อนคลายทั่วไป",
+      "title_en": "Thai Massage & General Relaxation",
+      "items": [
+        { "name_th": "นวดเท้า คอ-บ่า-ไหล่", "name_en": "Foot, Neck & Shoulder", "p60": 300, "p90": 450, "p120": 600 },
+        { "name_th": "นวดแผนไทย", "name_en": "Thai Massage", "p60": 300, "p90": 450, "p120": 600 },
+        { "name_th": "นวดน้ำมัน", "name_en": "Oil Massage", "p60": 400, "p90": 600, "p120": 800 },
+        { "name_th": "นวดคอ-บ่า-ไหล่", "name_en": "Neck & Shoulder", "p60": 350, "p90": 550, "p120": 700 }
+      ]
+    }
+  ],
+  "gallery": [
+    { "file": "gallery/g1.jpg", "alt_th": "ทางเข้าร้านน่วม Thai Massage ช่วงกลางวัน", "alt_en": "Nuam Thai Massage storefront entrance in daytime", "caption_th": "หน้าร้าน", "caption_en": "Storefront" },
+    { "file": "gallery/g2.jpg", "alt_th": "ห้องนวดแผนไทยเบาะปูเสื่อสองเตียง", "alt_en": "Thai massage room with two floor mats", "caption_th": "ห้องนวดแผนไทย", "caption_en": "Thai Massage Room" },
+    { "file": "gallery/g3.jpg", "alt_th": "ห้องนวดคู่ผนังสีเขียวอ่อน", "alt_en": "Twin massage room with light green walls", "caption_th": "ห้องนวดคู่", "caption_en": "Twin Massage Room" },
+    { "file": "gallery/g4.jpg", "alt_th": "เคาน์เตอร์ต้อนรับตกแต่งด้วยดอกทานตะวัน", "alt_en": "Reception counter decorated with sunflowers", "caption_th": "เคาน์เตอร์ต้อนรับ", "caption_en": "Reception Counter" },
+    { "file": "gallery/g5.jpg", "alt_th": "มุมนั่งรอตกแต่งสไตล์อบอุ่น", "alt_en": "Cozy-styled waiting area", "caption_th": "มุมนั่งรอ", "caption_en": "Waiting Area" },
+    { "file": "gallery/g6.jpg", "alt_th": "ช่างนวดกำลังนวดน้ำมันที่แผ่นหลังลูกค้า", "alt_en": "Therapist giving an oil massage on a customer's back", "caption_th": "นวดน้ำมัน", "caption_en": "Oil Massage" },
+    { "file": "gallery/g7.jpg", "alt_th": "ช่างนวดกำลังนวดคอและบ่าลูกค้า", "alt_en": "Therapist massaging a customer's neck and shoulders", "caption_th": "นวดคอ-บ่า-ไหล่", "caption_en": "Neck & Shoulder Massage" },
+    { "file": "gallery/g8.jpg", "alt_th": "ช่างนวดกำลังนวดศีรษะลูกค้า", "alt_en": "Therapist massaging a customer's head", "caption_th": "นวดศีรษะ", "caption_en": "Head Massage" }
+  ]
+}
