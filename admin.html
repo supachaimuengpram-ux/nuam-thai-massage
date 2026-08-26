@@ -553,10 +553,15 @@
           ? "-"
           : created.toLocaleString("th-TH", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
+        var bookedDate = b.date ? new Date(b.date + "T00:00:00") : null;
+        var bookedDateStr = bookedDate && !isNaN(bookedDate.getTime())
+          ? bookedDate.toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "2-digit" })
+          : (b.date || "-");
+
         row.appendChild(el("td", {}, [document.createTextNode(createdStr)]));
         row.appendChild(el("td", {}, [document.createTextNode(b.name || "")]));
         row.appendChild(el("td", {}, [document.createTextNode(b.phone || "")]));
-        row.appendChild(el("td", {}, [document.createTextNode(b.date || "")]));
+        row.appendChild(el("td", {}, [document.createTextNode(bookedDateStr)]));
         row.appendChild(el("td", {}, [document.createTextNode(b.time || "")]));
         row.appendChild(el("td", {}, [document.createTextNode(b.service || "-")]));
         row.appendChild(el("td", { class: "notes-cell" }, [document.createTextNode(b.notes || "-")]));
