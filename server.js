@@ -12,6 +12,7 @@ const SEED_CONTENT = path.join(__dirname, "content.seed.json");
 const SEED_GALLERY_DIR = path.join(__dirname, "images", "gallery");
 const CONTENT_PATH = path.join(DATA_DIR, "content.json");
 const GALLERY_DIR = path.join(DATA_DIR, "images", "gallery");
+const STATS_PATH = path.join(DATA_DIR, "stats.json");
 
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
@@ -33,6 +34,10 @@ function ensureSeeded() {
       }
     }
   }
+
+  if (!fs.existsSync(STATS_PATH)) {
+    fs.writeFileSync(STATS_PATH, JSON.stringify({ days: {} }, null, 2), "utf-8");
+  }
 }
 ensureSeeded();
 
@@ -41,6 +46,31 @@ function readContent() {
 }
 function writeContent(obj) {
   fs.writeFileSync(CONTENT_PATH, JSON.stringify(obj, null, 2), "utf-8");
+}
+
+function readStats() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(STATS_PATH, "utf-8"));
+    if (!parsed.days) parsed.days = {};
+    return parsed;
+  } catch (err) {
+    return { days: {} };
+  }
+}
+function writeStats(obj) {
+  fs.writeFileSync(STATS_PATH, JSON.stringify(obj, null, 2), "utf-8");
+}
+
+// dates are bucketed in Asia/Bangkok time (UTC+7) regardless of server timezone,
+// since that's the timezone the shop and its customers actually operate in
+function bangkokDateKey() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const bkk = new Date(utcMs + 7 * 3600000);
+  const y = bkk.getFullYear();
+  const m = String(bkk.getMonth() + 1).padStart(2, "0");
+  const d = String(bkk.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 // ---- basic auth for admin routes ----
@@ -98,6 +128,37 @@ app.get("/api/content", (req, res) => {
     res.json(readContent());
   } catch (err) {
     res.status(500).json({ error: "Could not read content." });
+  }
+});
+
+// ---- public: record an analytics event (pageview / call click / directions click) ----
+const TRACK_TYPES = ["pageview", "call", "directions"];
+app.post("/api/track", (req, res) => {
+  const type = req.body && req.body.type;
+  if (!TRACK_TYPES.includes(type)) {
+    res.status(400).json({ error: "Invalid event type." });
+    return;
+  }
+  try {
+    const stats = readStats();
+    const key = bangkokDateKey();
+    if (!stats.days[key]) stats.days[key] = { pageviews: 0, calls: 0, directions: 0 };
+    const field = type === "pageview" ? "pageviews" : type === "call" ? "calls" : "directions";
+    stats.days[key][field] = (stats.days[key][field] || 0) + 1;
+    writeStats(stats);
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: "Could not record event." });
+  }
+});
+
+// ---- admin: read analytics ----
+app.get("/api/stats", requireAdmin, (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    res.json(readStats());
+  } catch (err) {
+    res.status(500).json({ error: "Could not read stats." });
   }
 });
 

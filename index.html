@@ -1478,5 +1478,35 @@
     .catch(function () {
       // non-fatal: sections stay empty if content couldn't be loaded
     });
+
+  // ---- lightweight analytics: page views, call clicks, directions clicks ----
+  function trackEvent(type) {
+    try {
+      var payload = JSON.stringify({ type: type });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }));
+      } else {
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+
+  trackEvent("pageview");
+
+  document.addEventListener("click", function (e) {
+    var link = e.target.closest("a");
+    if (!link) return;
+    var href = link.getAttribute("href") || "";
+    if (href.indexOf("tel:") === 0) {
+      trackEvent("call");
+    } else if (href.indexOf("maps.app.goo.gl") > -1) {
+      trackEvent("directions");
+    }
+  });
 })();
 </script>
