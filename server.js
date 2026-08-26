@@ -27,11 +27,43 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 // account itself was signed up with.
 const RESEND_FROM = process.env.RESEND_FROM || "Nuam Thai Massage <onboarding@resend.dev>";
 
+// Blocks synchronously for `ms` milliseconds without spinning the CPU, using
+// Atomics.wait on a throwaway SharedArrayBuffer. Safe to use here because
+// ensureSeeded() runs once, synchronously, before the server starts listening.
+function sleepSync(ms) {
+  const sab = new SharedArrayBuffer(4);
+  const view = new Int32Array(sab);
+  Atomics.wait(view, 0, 0, ms);
+}
+
 // ---- first-boot seed: copy default content/images into the persistent volume ----
 function ensureSeeded() {
   fs.mkdirSync(GALLERY_DIR, { recursive: true });
 
-  if (!fs.existsSync(CONTENT_PATH)) {
+  // On some deploys the volume mount isn't fully propagated into the
+  // container's filesystem namespace by the time this runs, so a file that
+  // genuinely exists on the volume can briefly report as missing here. Retry
+  // a few times with a short delay before concluding it's really absent —
+  // otherwise we'd overwrite real user data with the bundled seed on every
+  // restart.
+  const MAX_RETRIES = 10;
+  const RETRY_DELAY_MS = 100;
+  let contentExists = fs.existsSync(CONTENT_PATH);
+  if (!contentExists) {
+    console.warn(
+      `content.json not found at ${CONTENT_PATH} on first check; retrying up to ${MAX_RETRIES} times ` +
+        `(${RETRY_DELAY_MS}ms apart) in case the volume mount hasn't propagated yet.`
+    );
+    for (let attempt = 1; attempt <= MAX_RETRIES && !contentExists; attempt++) {
+      sleepSync(RETRY_DELAY_MS);
+      contentExists = fs.existsSync(CONTENT_PATH);
+      if (contentExists) {
+        console.warn(`content.json appeared after ${attempt} retr${attempt === 1 ? "y" : "ies"}; skipping seed.`);
+      }
+    }
+  }
+
+  if (!contentExists) {
     fs.copyFileSync(SEED_CONTENT, CONTENT_PATH);
     console.log("Seeded content.json into", DATA_DIR);
   }
