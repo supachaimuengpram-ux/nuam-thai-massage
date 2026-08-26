@@ -18,15 +18,6 @@ const BOOKINGS_PATH = path.join(DATA_DIR, "bookings.json");
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
-// Booking-notification email is sent via the Resend HTTP API (https://resend.com)
-// instead of raw SMTP — Railway blocks outbound SMTP on both port 465 and 587,
-// but plain HTTPS (which the Resend API uses) is never blocked.
-const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
-// Without a verified custom domain on Resend, mail must be sent from this
-// sandbox address and can only be delivered to the email address the Resend
-// account itself was signed up with.
-const RESEND_FROM = process.env.RESEND_FROM || "Nuam Thai Massage <onboarding@resend.dev>";
-
 // one-line, low-noise startup diagnostic — cheap to leave in permanently,
 // and the only way to prove (rather than guess) how DATA_DIR resolved and
 // whether the volume mount was actually visible at boot
@@ -89,12 +80,7 @@ async function ensureSeeded() {
 }
 
 function readContent() {
-  const parsed = JSON.parse(fs.readFileSync(CONTENT_PATH, "utf-8"));
-  // migrate older content.json files that predate the "settings" section
-  if (!parsed.settings || typeof parsed.settings !== "object") {
-    parsed.settings = { notifyEmail: "" };
-  }
-  return parsed;
+  return JSON.parse(fs.readFileSync(CONTENT_PATH, "utf-8"));
 }
 function writeContent(obj) {
   fs.writeFileSync(CONTENT_PATH, JSON.stringify(obj, null, 2), "utf-8");
@@ -124,58 +110,6 @@ function readBookings() {
 }
 function writeBookings(obj) {
   fs.writeFileSync(BOOKINGS_PATH, JSON.stringify(obj, null, 2), "utf-8");
-}
-
-async function sendBookingEmail(booking, notifyEmail) {
-  if (!RESEND_API_KEY) return { sent: false, reason: "not_configured" };
-  if (!notifyEmail) return { sent: false, reason: "no_recipient" };
-
-  const lang = booking.lang === "en" ? "en" : "th";
-  const subject = lang === "en"
-    ? `New booking request — ${booking.name}`
-    : `คำขอจองคิวใหม่ — ${booking.name}`;
-  const lines = lang === "en"
-    ? [
-        `Name: ${booking.name}`,
-        `Phone: ${booking.phone}`,
-        `Date: ${booking.date}`,
-        `Time: ${booking.time}`,
-        `Service: ${booking.service || "(not specified)"}`,
-        `Notes: ${booking.notes || "-"}`,
-      ]
-    : [
-        `ชื่อ: ${booking.name}`,
-        `เบอร์โทร: ${booking.phone}`,
-        `วันที่: ${booking.date}`,
-        `เวลา: ${booking.time}`,
-        `บริการ: ${booking.service || "(ไม่ระบุ)"}`,
-        `หมายเหตุ: ${booking.notes || "-"}`,
-      ];
-
-  try {
-    const resp = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: RESEND_FROM,
-        to: [notifyEmail],
-        subject: subject,
-        text: lines.join("\n"),
-      }),
-    });
-    if (!resp.ok) {
-      const errBody = await resp.text().catch(() => "");
-      console.error("Failed to send booking email:", resp.status, errBody.slice(0, 300));
-      return { sent: false, reason: "send_error" };
-    }
-    return { sent: true };
-  } catch (err) {
-    console.error("Failed to send booking email:", err.message);
-    return { sent: false, reason: "send_error" };
-  }
 }
 
 // dates are bucketed in Asia/Bangkok time (UTC+7) regardless of server timezone,
@@ -321,16 +255,9 @@ app.post("/api/booking", async (req, res) => {
     return;
   }
 
-  let emailResult = { sent: false };
-  try {
-    const content = readContent();
-    const notifyEmail = content.settings && content.settings.notifyEmail;
-    emailResult = await sendBookingEmail(booking, notifyEmail);
-  } catch (err) {
-    // non-fatal: booking is already saved even if email lookup/send fails
-  }
-
-  res.json({ ok: true, id: booking.id, emailSent: !!emailResult.sent });
+  // no email notification is sent — check the "คำขอจองคิว" tab in /admin
+  // for new requests
+  res.json({ ok: true, id: booking.id });
 });
 
 // ---- admin: read booking requests ----

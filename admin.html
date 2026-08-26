@@ -533,12 +533,7 @@
   function renderBookingsSection(bookingsData, currentContent) {
     var sec = el("section", { class: "panel" });
     sec.appendChild(el("h2", {}, [document.createTextNode("คำขอจองคิว")]));
-    sec.appendChild(el("p", { class: "desc" }, [document.createTextNode("รายการคำขอจองคิวจากลูกค้า และอีเมลที่จะรับการแจ้งเตือนเมื่อมีคำขอใหม่")]));
-
-    var notifyEmailInput = textInput(currentContent.settings ? currentContent.settings.notifyEmail : "");
-    notifyEmailInput.type = "email";
-    notifyEmailInput.placeholder = "shop@example.com";
-    sec.appendChild(field("อีเมลรับแจ้งเตือน (บันทึกพร้อมปุ่ม \"บันทึกการเปลี่ยนแปลง\" ด้านล่าง)", notifyEmailInput));
+    sec.appendChild(el("p", { class: "desc" }, [document.createTextNode("รายการคำขอจองคิวจากลูกค้า — ระบบไม่ส่งอีเมลแจ้งเตือน กรุณาเข้ามาดูที่แท็บนี้เป็นระยะเพื่อไม่ให้พลาดคำขอใหม่")]));
 
     var items = (bookingsData && bookingsData.items) || [];
     if (!items.length) {
@@ -596,7 +591,7 @@
       sec.appendChild(wrap);
     }
 
-    return { section: sec, notifyEmailInput: notifyEmailInput };
+    return { section: sec };
   }
 
   function countUncontacted() {
@@ -651,7 +646,6 @@
     var bookingsResult = renderBookingsSection(bookings, content);
     app.appendChild(el("div", { class: "tab-panel", "data-tab": "bookings" }, [bookingsResult.section]));
     tabDefs.push({ id: "bookings", label: "คำขอจองคิว", badge: countUncontacted() });
-    var notifyEmailInput = bookingsResult.notifyEmailInput;
 
     // ---- promo ----
     var promoSec = el("section", { class: "panel" });
@@ -730,8 +724,6 @@
 
     // collect functions for save
     window.__collect = function () {
-      if (!content.settings) content.settings = {};
-      content.settings.notifyEmail = notifyEmailInput.value.trim();
       content.promo.enabled = promoToggle.checked;
       content.promo.th = promoTh.value;
       content.promo.en = promoEn.value;
