@@ -1,0 +1,12 @@
+{
+  "name": "nuam-thai-massage",
+  "version": "1.0.0",
+  "private": true,
+  "description": "น่วม Thai Massage - เว็บไซต์ร้านนวด รัชดา32",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
