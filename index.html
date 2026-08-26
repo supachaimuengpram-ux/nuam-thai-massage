@@ -516,11 +516,59 @@
     flex-wrap: wrap;
   }
   .booking-msg { font-size: 13.5px; font-weight: 600; }
-  .booking-msg.ok { color: var(--sage-ink, #2E7D4F); }
+  .booking-msg.ok { color: var(--sage); }
   .booking-msg.err { color: #C5221F; }
   @media (max-width: 600px) {
     .booking-form { padding: 20px 18px; }
     .booking-row { grid-template-columns: 1fr; gap: 0; }
+  }
+
+  .booking-confirm {
+    max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    padding: 40px 32px;
+    text-align: center;
+  }
+  .booking-confirm-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: var(--sage);
+    color: var(--sage-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    line-height: 1;
+  }
+  .booking-confirm h3 {
+    font-family: "Noto Serif Thai", serif;
+    font-size: 21px;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+  .booking-confirm-detail {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    margin: 0 0 14px;
+    display: inline-block;
+  }
+  .booking-confirm-note {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+    line-height: 1.6;
+  }
+  @media (max-width: 600px) {
+    .booking-confirm { padding: 30px 20px; }
   }
 
   /* lightbox */
@@ -938,6 +986,13 @@
           <span class="booking-msg" id="bookingMsg"></span>
         </div>
       </form>
+      <div class="booking-confirm" id="bookingConfirm" hidden>
+        <div class="booking-confirm-icon" aria-hidden="true">&#10003;</div>
+        <h3 data-i18n="booking.confirmTitle">ได้รับคำขอจองคิวของคุณแล้ว</h3>
+        <p class="booking-confirm-detail" id="bookingConfirmDetail"></p>
+        <p class="booking-confirm-note" data-i18n="booking.confirmNote">ทางร้านจะติดต่อกลับทางเบอร์โทรที่ให้ไว้เพื่อยืนยันเวลาอีกครั้ง</p>
+        <button type="button" class="btn btn-ghost" id="bookingConfirmAgainBtn" data-i18n="booking.confirmAgain">จองคิวอีกครั้ง</button>
+      </div>
     </section>
 
     <section class="block" id="reviews">
@@ -1176,6 +1231,9 @@
       "booking.success": "ส่งคำขอจองคิวเรียบร้อยแล้ว ทางร้านจะติดต่อกลับเพื่อยืนยันเร็ว ๆ นี้",
       "booking.errorRequired": "กรุณากรอกชื่อ เบอร์โทร วันที่ และเวลาให้ครบถ้วน",
       "booking.errorGeneric": "ส่งคำขอไม่สำเร็จ กรุณาลองใหม่อีกครั้ง หรือโทรจองคิวโดยตรง",
+      "booking.confirmTitle": "ได้รับคำขอจองคิวของคุณแล้ว",
+      "booking.confirmNote": "ทางร้านจะติดต่อกลับทางเบอร์โทรที่ให้ไว้เพื่อยืนยันเวลาอีกครั้ง",
+      "booking.confirmAgain": "จองคิวอีกครั้ง",
       "reviews.eyebrow": "เสียงจากลูกค้า",
       "reviews.h2": "รีวิวจริงจาก Google Maps",
       "reviews.introPre": "คะแนนเฉลี่ย",
@@ -1268,6 +1326,9 @@
       "booking.success": "Your booking request has been sent. The shop will call you back soon to confirm.",
       "booking.errorRequired": "Please fill in name, phone, date and time.",
       "booking.errorGeneric": "Could not send the request. Please try again, or call the shop directly.",
+      "booking.confirmTitle": "Your booking request has been received",
+      "booking.confirmNote": "The shop will call the phone number you provided to confirm the time.",
+      "booking.confirmAgain": "Book another time",
       "reviews.eyebrow": "What Customers Say",
       "reviews.h2": "Real Reviews from Google Maps",
       "reviews.introPre": "Average rating",
@@ -1683,6 +1744,26 @@
 
     var bookingMsg = document.getElementById("bookingMsg");
     var bookingSubmitBtn = document.getElementById("bookingSubmitBtn");
+    var bookingConfirm = document.getElementById("bookingConfirm");
+    var bookingConfirmDetail = document.getElementById("bookingConfirmDetail");
+    var bookingConfirmAgainBtn = document.getElementById("bookingConfirmAgainBtn");
+
+    function formatBookingDateTime(dateStr, timeStr, lang) {
+      var d = new Date(dateStr + "T00:00:00");
+      var dateLabel = isNaN(d.getTime())
+        ? dateStr
+        : lang === "en"
+          ? d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+          : d.toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" });
+      return dateLabel + " · " + timeStr + (lang === "en" ? "" : " น.");
+    }
+
+    if (bookingConfirmAgainBtn) {
+      bookingConfirmAgainBtn.addEventListener("click", function () {
+        bookingConfirm.hidden = true;
+        bookingForm.hidden = false;
+      });
+    }
 
     bookingForm.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -1714,8 +1795,16 @@
           return r.json();
         })
         .then(function () {
-          bookingMsg.textContent = dict["booking.success"] || "";
-          bookingMsg.className = "booking-msg ok";
+          bookingMsg.textContent = "";
+          bookingMsg.className = "booking-msg";
+          if (bookingConfirmDetail) {
+            bookingConfirmDetail.textContent = formatBookingDateTime(date, time, currentLang);
+          }
+          if (bookingConfirm) {
+            bookingForm.hidden = true;
+            bookingConfirm.hidden = false;
+            bookingConfirm.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
           bookingForm.reset();
           if (bkDateInput) bkDateInput.min = todayStr;
         })
