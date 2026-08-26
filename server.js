@@ -3,12 +3,6 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const multer = require("multer");
-let nodemailer;
-try {
-  nodemailer = require("nodemailer");
-} catch (err) {
-  nodemailer = null;
-}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,19 +18,14 @@ const BOOKINGS_PATH = path.join(DATA_DIR, "bookings.json");
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
-const GMAIL_USER = process.env.GMAIL_USER || "";
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "";
-let mailTransporter = null;
-if (nodemailer && GMAIL_USER && GMAIL_APP_PASSWORD) {
-  mailTransporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // use STARTTLS on 587 instead of implicit TLS on 465 —
-    // some PaaS hosts block outbound 465 while allowing 587
-    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
-    connectionTimeout: 10000,
-  });
-}
+// Booking-notification email is sent via the Resend HTTP API (https://resend.com)
+// instead of raw SMTP — Railway blocks outbound SMTP on both port 465 and 587,
+// but plain HTTPS (which the Resend API uses) is never blocked.
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+// Without a verified custom domain on Resend, mail must be sent from this
+// sandbox address and can only be delivered to the email address the Resend
+// account itself was signed up with.
+const RESEND_FROM = process.env.RESEND_FROM || "Nuam Thai Massage <onboarding@resend.dev>";
 
 // ---- first-boot seed: copy default content/images into the persistent volume ----
 function ensureSeeded() {
@@ -105,7 +94,7 @@ function writeBookings(obj) {
 }
 
 async function sendBookingEmail(booking, notifyEmail) {
-  if (!mailTransporter) return { sent: false, reason: "not_configured" };
+  if (!RESEND_API_KEY) return { sent: false, reason: "not_configured" };
   if (!notifyEmail) return { sent: false, reason: "no_recipient" };
 
   const lang = booking.lang === "en" ? "en" : "th";
@@ -131,12 +120,24 @@ async function sendBookingEmail(booking, notifyEmail) {
       ];
 
   try {
-    await mailTransporter.sendMail({
-      from: `"น่วม Thai Massage" <${GMAIL_USER}>`,
-      to: notifyEmail,
-      subject: subject,
-      text: lines.join("\n"),
+    const resp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: [notifyEmail],
+        subject: subject,
+        text: lines.join("\n"),
+      }),
     });
+    if (!resp.ok) {
+      const errBody = await resp.text().catch(() => "");
+      console.error("Failed to send booking email:", resp.status, errBody.slice(0, 300));
+      return { sent: false, reason: "send_error" };
+    }
     return { sent: true };
   } catch (err) {
     console.error("Failed to send booking email:", err.message);
